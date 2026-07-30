@@ -1,0 +1,16 @@
+{
+  "name": "ledcontroller-net",
+  "version": "0.4.36",
+  "private": true,
+  "type": "module",
+  "description": "Browser-based LED matrix and WLED/Art-Net visual engine with layered mixing, audio reactivity, advanced pixel mapping, presets, and live network output",
+  "scripts": {
+    "start": "node server.mjs",
+    "test": "node --test --test-concurrency=1"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "author": "James Bahr",
+  "license": "UNLICENSED"
+}

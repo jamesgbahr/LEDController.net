@@ -1,0 +1,48 @@
+# Dependencies
+node_modules/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+logs/
+
+# Runtime and temporary files
+*.pid
+*.pid.lock
+.tmp/
+tmp/
+temp/
+.cache/
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Editor and OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# Build and release artifacts
+out/
+dist/
+build/
+*.zip
+*.exe
+*.msi
+
+# Local mapping/preset backups if the project is run from a redirected folder
+Mappings/
+Presets/
+Backups/
+Audio Profiles/

@@ -1,0 +1,72 @@
+.mapping-shell{width:min(1600px,calc(100% - 40px))}
+.mapping-topbar{align-items:center}
+.mapping-layout{display:grid;grid-template-columns:minmax(340px,430px) minmax(0,1fr);grid-auto-flow:row;grid-auto-rows:auto;align-items:start;gap:18px}
+.mapping-controls-card{align-self:start;position:static;min-width:0}
+.mapping-preview-card{min-width:0;align-self:start}
+.mapping-subhead{margin-top:26px}
+.toggle{flex-direction:row;align-items:center;background:#0a1424;border:1px solid #223552;border-radius:10px;padding:11px 12px;cursor:pointer}
+.toggle input{width:auto;margin:0;accent-color:#6c72ff}
+.mapping-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}
+.mapping-note{margin-top:14px}
+.mapping-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+.mapping-summary div{background:#091425;border:1px solid #20324d;border-radius:14px;padding:14px}
+.mapping-summary span{display:block;color:#7085a4;font-size:10px;text-transform:uppercase;letter-spacing:.1em;font-weight:800}
+.mapping-summary strong{display:block;font-size:20px;margin-top:6px}
+.mapping-stage-wrap{overflow:auto;background:#050b14;border:1px solid #243754;border-radius:16px;padding:16px;max-height:760px}
+.mapping-stage-wrap canvas{display:block;background:#07111e;border-radius:10px;cursor:crosshair;image-rendering:pixelated}
+.mapping-preview-card .notice{margin-top:14px}
+.badge.invalid{background:#702a42;color:#ffb5c8}
+.mapping-test-card{grid-column:1/-1;position:relative;z-index:1;min-width:0;overflow:visible;scroll-margin-top:18px}
+.active-target-strip{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:-2px 0 18px;padding:13px 15px;background:#08172a;border:1px solid #294263;border-radius:14px}
+.active-target-strip span{display:block;color:#7188aa;font-size:10px;text-transform:uppercase;letter-spacing:.11em;font-weight:800}
+.active-target-strip strong{display:block;margin-top:4px;color:#dce9ff;font-size:15px;overflow-wrap:anywhere}
+.pixel-test-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(360px,1fr);align-items:start;gap:22px}
+.pixel-test-layout>div{min-width:0}
+.pixel-step-panel{background:#091425;border:1px solid #233652;border-radius:16px;padding:18px;position:relative}
+.pixel-readout{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin-bottom:15px}
+.pixel-readout span{color:#7085a4;font-size:11px;text-transform:uppercase;letter-spacing:.1em;font-weight:800}
+.pixel-readout strong{font-size:30px;letter-spacing:-.04em}
+.pixel-readout strong span{color:#eef3ff;font-size:inherit;letter-spacing:inherit}
+.compact-grid{margin-top:14px}
+.pixel-step-buttons{display:grid;grid-template-columns:1fr 1.25fr 1fr;gap:9px;margin-top:15px}
+.pixel-step-buttons.secondary-actions{grid-template-columns:1fr 1fr}
+.mapping-output-message{margin-top:16px;margin-bottom:0}
+.mapping-output-message.output-error{background:#3b1824;border-color:#773147;color:#ffb5c8}
+@media(max-width:1050px){.mapping-layout{grid-template-columns:1fr}.mapping-summary{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:900px){.pixel-test-layout{grid-template-columns:1fr}}
+@media(max-width:620px){.pixel-step-buttons,.pixel-step-buttons.secondary-actions{grid-template-columns:1fr}.active-target-strip{align-items:stretch;flex-direction:column}.active-target-strip .button{text-align:center}}
+@media(max-width:560px){.mapping-summary{grid-template-columns:1fr 1fr}.mapping-actions{flex-direction:column}.mapping-actions .button{width:100%}}
+.mapped-layout-card{grid-column:1/-1;min-width:0}
+.mapped-help{color:#9badc9;margin:-4px 0 16px;line-height:1.55}
+.mapped-test-buttons{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.mapping-note.saved{background:#103424;border-color:#246c4d;color:#baf4d3}
+@media(max-width:1000px){.mapped-test-buttons{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){.mapped-test-buttons{grid-template-columns:1fr}}
+
+.panel-transform-help{margin:-4px 0 14px;color:var(--muted);line-height:1.5}
+.panel-defaults{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;padding:12px;border:1px solid var(--border);border-radius:14px;background:#0b1525;margin-bottom:12px}
+.panel-defaults .button{align-self:end;min-height:42px}
+.panel-transform-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:18px}
+.panel-transform-card{display:grid;gap:9px;padding:12px;border:1px solid #29405e;border-radius:14px;background:linear-gradient(180deg,#101f34,#0b1627)}
+.panel-transform-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;padding-bottom:8px;border-bottom:1px solid #263a55}
+.panel-transform-head strong{display:block;color:#f2f6ff;font-size:.95rem}
+.panel-transform-head span{display:block;color:#91a5c4;font-size:.76rem;margin-top:3px}
+.panel-orientation-badge{flex:0 0 auto!important;margin:0!important;padding:5px 8px;border-radius:999px;background:#243b67;color:#dce7ff!important;font-weight:800;font-size:.72rem!important}
+.panel-transform-card label{margin:0}
+@media(max-width:720px){.panel-defaults,.panel-transform-grid{grid-template-columns:1fr}}
+
+.custom-wiring-panel{margin:18px 0 4px;padding:15px;border:1px solid #32537d;border-radius:16px;background:linear-gradient(180deg,#0e2037,#091728)}
+.custom-wiring-panel.hidden{display:none}
+.custom-wiring-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:8px}
+.custom-wiring-head h2{margin:3px 0 0;font-size:1.08rem}
+.custom-wiring-panel>p{margin:0 0 14px;color:#9badc9;line-height:1.55}
+.custom-wiring-progress{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.custom-wiring-progress>div{padding:12px;border:1px solid #294263;border-radius:12px;background:#081426}
+.custom-wiring-progress span{display:block;color:#7890b2;font-size:10px;text-transform:uppercase;letter-spacing:.1em;font-weight:800}
+.custom-wiring-progress strong{display:block;margin-top:5px;color:#f2f6ff;font-size:20px}
+.custom-wiring-progress strong span{display:inline;color:inherit;font-size:inherit;letter-spacing:inherit;text-transform:none}
+.custom-wiring-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.custom-wiring-panel .notice{margin-top:12px}
+.custom-wiring-panel .notice.output-error{background:#3b1824;border-color:#773147;color:#ffb5c8}
+.mapping-stage-wrap canvas.custom-editing{cursor:cell}
+@media(max-width:560px){.custom-wiring-progress,.custom-wiring-actions{grid-template-columns:1fr}}

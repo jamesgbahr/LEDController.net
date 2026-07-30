@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<title>LEDController Visual Workspace</title>
+<link href="/styles.css" rel="stylesheet"/>
+<link href="/mapping-preview.css" rel="stylesheet"/>
+<link href="/workspace.css" rel="stylesheet"/>
+</head>
+<body class="workspace-body">
+<div class="workspace-shell">
+<header class="workspace-topbar">
+<div class="workspace-brand">
+<div class="brand-mark">LC</div>
+<div>
+<div class="eyebrow">LEDController</div>
+<h1>Pixel Workspace</h1>
+</div>
+</div>
+<nav aria-label="Workspace sections" class="workspace-nav">
+<button class="workspace-nav-button" data-workspace-tab="discovery">Discover</button>
+<a class="workspace-nav-button" data-workspace-tab="mapping" href="#mapping" id="mappingLink">Map</a>
+<button class="workspace-nav-button" data-workspace-tab="output">Output</button>
+<button class="workspace-nav-button" data-workspace-tab="monitor">Monitor</button>
+</nav>
+<div class="persistent-target" id="persistentTarget">
+<span class="connection-dot idle" id="connectionDot"></span>
+<div class="persistent-target-copy">
+<strong id="connectionName">No WLED selected</strong>
+<small id="connectionMeta">Run discovery and choose Use target</small>
+</div>
+<div class="connection-state-block">
+<span id="connectionState">Not connected</span>
+<small id="connectionLastSeen">—</small>
+</div>
+<button class="button compact-button" id="connectionDiscover" type="button">Find device</button>
+</div>
+<div class="server-pill compact-server-pill">
+<span id="serverDot"></span>
+<strong id="serverState">Connecting</strong>
+<small id="serverVersion">—</small>
+</div>
+</header>
+<main class="workspace-main">
+<section class="workspace-view" data-workspace-view="discovery" id="view-discovery">
+<div class="workspace-section-head">
+<div><span class="kicker">Network</span><h2>Discover LED controllers</h2></div>
+<div class="actions">
+<button class="button primary" id="mdnsButton">Quick discovery</button>
+<button class="button" id="scanButton">Deep WLED scan</button>
+</div>
+</div>
+<div class="interface-strip" id="interfaces"></div>
+<div class="notice compact-notice" id="discoveryNotice">Quick discovery retries WLED mDNS and Art-Net ArtPoll, then verifies the local subnet only when necessary.</div>
+<div class="table-wrap discovery-table-wrap">
+<table>
+<thead><tr><th>Device</th><th>IP address</th><th>Identity</th><th>LEDs</th><th>Protocols</th><th></th></tr></thead>
+<tbody id="deviceRows"><tr><td class="empty" colspan="6">No discovery run yet.</td></tr></tbody>
+</table>
+</div>
+</section>
+<section class="workspace-view" data-workspace-view="mapping" id="view-mapping">
+<div class="mapping-workspace-grid">
+<aside class="mapping-toolbox card">
+<div class="toolbox-head">
+<div><span class="kicker">Pixel mapping</span><h2>Configure &amp; test</h2></div>
+<div class="badge live" id="mappingStatus">Valid</div>
+</div>
+<div class="mapping-tool-tabs" role="tablist">
+<button class="mapping-tool-tab active" data-mapping-pane="layout">Layout</button>
+<button class="mapping-tool-tab" data-mapping-pane="panels">Panels</button>
+<button class="mapping-tool-tab" data-mapping-pane="custom">Custom</button>
+<button class="mapping-tool-tab" data-mapping-pane="mapped">Mapped test</button>
+<button class="mapping-tool-tab" data-mapping-pane="raw">Raw test</button>
+</div>
+<div class="mapping-tool-content">
+<div class="mapping-pane active" data-mapping-pane-content="layout">
+<div class="compact-section-title"><span>Canvas</span><strong>Dynamic panel manager</strong></div>
+<div class="form-grid compact-form-grid">
+<label>New panel width<input id="panelWidth" max="128" min="1" type="number" value="4"/></label>
+<label>New panel height<input id="panelHeight" max="128" min="1" type="number" value="4"/></label>
+<label>Auto-wrap columns<input id="panelColumns" max="16" min="1" type="number" value="2"/></label>
+<input id="panelRows" type="hidden" value="2"/>
+<label class="span-2">Resolution preset<select id="panelResolutionPreset"><option value="custom">Custom size</option><option value="4x4">4 × 4</option><option value="8x8">8 × 8</option><option value="16x16">16 × 16</option><option value="32x8">32 × 8</option><option value="32x16">32 × 16</option><option value="64x8">64 × 8</option><option value="64x16">64 × 16</option></select></label>
+</div>
+<div class="panel-manager-actions">
+<button class="button primary" id="addPanel" type="button">+ Add panel</button>
+<button class="button" id="autoArrangePanels" type="button">Auto arrange</button>
+</div>
+<div aria-label="Panel arrangement presets" class="panel-layout-presets">
+<button class="button layout-preset-button" id="arrangePanelsHorizontal" type="button">All panels in one row</button>
+<button class="button layout-preset-button" id="arrangePanelsVertical" type="button">All panels in one column</button>
+<button class="button layout-preset-button" id="arrangePanelsGrid" type="button">2 × 2 grid</button>
+</div>
+<div class="inline-help layout-preset-help">For four panels mounted longways, choose <strong>All panels in one row</strong>, then Save mapping.</div>
+<div class="inline-help" id="panelLayoutSummary">4 panels · 8 × 8 canvas · 64 active pixels · 64 controller pixels</div>
+<div class="compact-section-title"><span>Controller pixels</span><strong>Preserve physical LED addresses</strong></div>
+<div class="form-grid compact-form-grid">
+<label class="span-2">WLED / controller pixel count<input id="controllerPixels" max="262144" min="1" type="number" value="64"/></label>
+<label class="span-2">Physical chain direction<select id="controllerDirection"><option value="forward">Forward — first connected LED is address 1</option><option value="reverse">Reverse — first connected LED is the last address</option></select></label>
+</div>
+<div class="panel-manager-actions">
+<button class="button" id="matchControllerPixels" type="button">Match highest panel address</button>
+<button class="button" id="repackPhysicalStarts" type="button">Repack physical starts</button>
+</div>
+<div class="inline-help">Disabled or removed panels leave their physical ranges reserved. If the LED connected to the controller behaves as pixel 64, choose <strong>LED 64 → LED 1</strong>. Repack only when you intentionally want to close address gaps.</div>
+<div class="compact-section-title"><span>Panel chain</span><strong>Controller-to-panel order</strong></div>
+<div class="form-grid compact-form-grid">
+<label class="span-2">Panel order<select id="panelOrderMode"><option value="preset">Preset travel order</option><option value="custom">Custom panel chain order</option></select></label>
+<label>Travel<select id="panelAxis"><option value="rows">Across rows</option><option value="columns">Down columns</option></select></label>
+<label>Start corner<select id="panelCorner"><option value="tl">Top left</option><option value="tr">Top right</option><option value="bl">Bottom left</option><option value="br">Bottom right</option></select></label>
+<label class="toggle span-2"><input checked="" id="panelSerpentine" type="checkbox"/> Serpentine panel chain</label>
+</div>
+<div class="inline-help" id="panelOrderModeHint">Preset cable order follows travel, start corner, and serpentine settings.</div>
+<div class="compact-section-title"><span>Pixel wiring</span><strong>Inside each panel</strong></div>
+<div class="form-grid compact-form-grid">
+<label>Travel<select id="pixelAxis"><option value="rows">Across rows</option><option value="columns">Down columns</option></select></label>
+<label>Input corner<select id="pixelCorner"><option value="tl">Top left</option><option value="tr">Top right</option><option value="bl">Bottom left</option><option value="br">Bottom right</option></select></label>
+<label class="toggle span-2"><input checked="" id="pixelSerpentine" type="checkbox"/> Serpentine pixels</label>
+<label class="span-2">Wiring method<select id="wiringMode"><option value="preset">Preset row/column wiring</option><option value="custom">Custom click-by-click wiring</option></select></label>
+<label class="span-2">Preview labels<select id="labelMode"><option value="physical">Physical address</option><option value="logical">Logical XY</option><option value="both">Both</option><option value="none">None</option></select></label>
+</div>
+<div class="mapping-actions compact-mapping-actions">
+<button class="button" id="resetMapping">Reset preset</button>
+<button class="button primary" id="saveMapping">Save active mapping</button>
+<button class="button" id="exportMapping">Export JSON</button>
+</div>
+<div class="notice mapping-note" id="mappingSaveMessage">Changes preview immediately. Save to activate this map for output. Mapping storage is independent from performance presets.</div>
+</div>
+<div class="mapping-pane" data-mapping-pane-content="panels">
+<p class="panel-transform-help">Add or remove panels, set each panel's resolution and logical position, then assign cable order, rotation, and mirrors. Sparse layouts and mixed resolutions are supported.</p>
+<div class="panel-chain-customizer">
+<div><strong>Panel cable sequence</strong><span>Controller output enters cable position 1, then 2, 3, and onward.</span></div>
+<button class="button" id="usePresetPanelOrder" type="button">Preset → custom order</button>
+</div>
+<div aria-live="polite" class="panel-order-summary" id="panelOrderSummary"></div>
+<div class="panel-defaults">
+<label>Default rotation<select id="rotation"><option value="0">0°</option><option value="90">90°</option><option value="180">180°</option><option value="270">270°</option></select></label>
+<label class="toggle"><input id="flipX" type="checkbox"/> Default mirror X</label>
+<label class="toggle"><input id="flipY" type="checkbox"/> Default mirror Y</label>
+<button class="button" id="applyPanelDefaults" type="button">Apply to all</button>
+</div>
+<div aria-live="polite" class="panel-transform-grid" id="panelTransformGrid"></div>
+</div>
+<div class="mapping-pane" data-mapping-pane-content="custom">
+<div class="custom-wiring-panel hidden" id="customWiringPanel">
+<div class="custom-wiring-head">
+<div><span class="kicker">Custom wiring</span><h2>Click in active physical-address order</h2></div>
+<div class="badge idle" id="customWiringBadge">Not started</div>
+</div>
+<p>Click active preview pixels in ascending physical-address order. Reserved or disabled address ranges are skipped automatically.</p>
+<div class="custom-wiring-progress">
+<div><span>Next address</span><strong id="customNextAddress">1</strong></div>
+<div><span>Assigned</span><strong><span id="customAssignedCount">0</span> / <span id="customTotalCount">64</span></strong></div>
+</div>
+<div class="custom-wiring-actions">
+<button class="button primary" id="customStart" type="button">Start / resume</button>
+<button class="button" id="customUndo" type="button">Undo last</button>
+<button class="button" id="customPreset" type="button">Preset → custom</button>
+<button class="button danger" id="customClear" type="button">Clear map</button>
+<button class="button success" id="customSaveMapping" type="button">Save custom mapping</button>
+</div>
+<div class="notice" id="customWiringMessage">Choose custom wiring in Layout, then start clicking.</div>
+<div class="notice mapping-note" id="customSaveMessage">Complete the click route, then save it here without leaving this tab.</div>
+</div>
+<div class="empty-pane-state" id="customEmptyState">Choose <strong>Custom click-by-click wiring</strong> in the Layout tab to activate this editor.</div>
+</div>
+<div class="mapping-pane" data-mapping-pane-content="mapped">
+<div class="pane-badge-row"><strong>Mapped layout verification</strong><div class="badge idle" id="mappedOutputBadge">Idle</div></div>
+<p class="mapped-help">These tests render one continuous global XY canvas first, then use the saved map to choose each physical LED. Mapping owns the transmitter until you press Blackout.</p>
+<div class="mapping-proof-grid">
+<div><span>Active map</span><strong id="mappingProofType">Not saved</strong></div>
+<div><span>Fingerprint</span><strong id="mappingProofFingerprint">—</strong></div>
+<div class="span-2"><span>Current route</span><strong id="mappingProofRoute">Logical 1 → Physical 1</strong></div>
+</div>
+<div class="mapped-logical-step">
+<label>Logical pixel<input id="mappedLogicalNumber" min="1" type="number" value="1"/></label>
+<div class="pixel-step-buttons">
+<button class="button" id="mappedPreviousLogical" type="button">←</button>
+<button class="button primary" id="mappedHoldSelected" type="button">Hold mapped pixel</button>
+<button class="button" id="mappedNextLogical" type="button">→</button>
+</div>
+<div class="form-grid compact-form-grid">
+<label>On time<input id="mappedStepSeconds" max="30" min="0.1" step="0.1" type="number" value="2"/></label>
+<label>Dark gap<input id="mappedGapSeconds" max="10" min="0" step="0.1" type="number" value="0.3"/></label>
+</div>
+</div>
+<div class="mapped-test-buttons compact-test-grid">
+<button class="button success" id="mappedSlowChase">Slow logical proof</button>
+<button class="button" id="mappedChase">Fast XY chase</button>
+<button class="button" id="mappedRows">Row scan</button>
+<button class="button" id="mappedColumns">Column scan</button>
+<button class="button" id="mappedChecker">Checker</button>
+<button class="button" id="mappedRainbow">Rainbow</button>
+<button class="button success" id="mappedFlowX">Flow across X</button>
+<button class="button success" id="mappedFlowY">Flow across Y</button>
+<button class="button success" id="mappedFlowDiagonal">Diagonal flow</button>
+<button class="button" id="mappedSeams">Seam grid proof</button>
+<button class="button danger" id="mappedBlackout">Blackout</button>
+</div>
+<div class="notice mapping-output-message" id="mappedOutputMessage">Save the map, then use Slow logical proof. The UI will show each logical-to-physical route while the corresponding hardware pixel lights.</div>
+</div>
+<div class="mapping-pane" data-mapping-pane-content="raw">
+<div class="pane-badge-row"><strong>Raw physical-chain test</strong><div class="badge idle" id="mappingOutputBadge">Idle</div></div>
+<div class="active-target-strip compact-target-strip">
+<div><span>Active controller</span><strong id="mapTargetState">No controller selected</strong></div>
+<button class="button" id="changeControllerInline" type="button">Change</button>
+</div>
+<div class="form-grid compact-form-grid">
+<label class="span-2">Target IP<input autocomplete="off" id="mapTargetIp" placeholder="192.168.1.50"/></label>
+<label>Protocol<select id="mapProtocol"><option value="ddp">WLED DDP</option><option value="artnet">Art-Net</option></select></label>
+<label id="mapPortField">DDP port<input id="mapPort" max="65535" min="1" type="number" value="4048"/></label>
+<label class="hidden" id="mapUniverseField">Universe<input id="mapStartUniverse" max="32767" min="0" type="number" value="0"/></label>
+<label>Channel order<select id="mapChannelOrder"><option>RGB</option><option>GRB</option><option>BRG</option><option>RBG</option><option>GBR</option><option>BGR</option></select></label>
+<label>Brightness<input id="mapBrightness" max="1" min="0" step="0.01" type="range" value="0.20"/><span id="mapBrightnessValue">20%</span></label>
+<label>Color<input id="mapColor" type="color" value="#ff2d55"/></label>
+</div>
+<div class="pixel-step-panel compact-pixel-step-panel">
+<div class="pixel-readout"><span>Physical address</span><strong><span id="mapPixelDisplay">1</span> / <span id="mapPixelTotal">64</span></strong></div>
+<label>Pixel number<input id="mapPixelNumber" min="1" type="number" value="1"/></label>
+<div class="form-grid compact-form-grid">
+<label>On time<input id="mapStepSeconds" max="30" min="0.1" step="0.1" type="number" value="2"/></label>
+<label>Dark gap<input id="mapGapSeconds" max="10" min="0" step="0.1" type="number" value="0.3"/></label>
+</div>
+<div class="pixel-step-buttons">
+<button class="button" id="mapPreviousPixel">←</button>
+<button class="button primary" id="mapHoldPixel">Hold ON</button>
+<button class="button" id="mapNextPixel">→</button>
+</div>
+<div class="pixel-step-buttons secondary-actions">
+<button class="button success" id="mapSlowChase">Slow chase</button>
+<button class="button danger" id="mapBlackout">All OFF</button>
+</div>
+</div>
+<div class="notice mapping-output-message" id="mappingOutputMessage">Raw mode bypasses mapping to trace the cable chain.</div>
+</div>
+</div>
+</aside>
+<section class="card mapping-preview-card workspace-preview-card">
+<div class="preview-header-row">
+<div><span class="kicker">Always visible</span><h2>Logical canvas &amp; cable path</h2></div>
+<div class="preview-header-tools">
+<button class="button compact-button" id="fitMappingPreview" type="button">Fit all panels</button>
+<button class="button compact-button" id="togglePanelLabels" type="button">Hide panel labels</button>
+</div>
+<div class="mapping-summary compact-summary">
+<div><span>Canvas</span><strong id="canvasSize">8 × 8</strong></div>
+<div><span>Panels</span><strong id="panelCount">4</strong></div>
+<div><span>Active / controller</span><strong id="pixelCount">64 / 64</strong></div>
+<div><span>Selected</span><strong id="selectedPixel">—</strong></div>
+</div>
+</div>
+<div class="mapping-stage-wrap workspace-stage-wrap">
+<canvas height="700" id="mappingCanvas" width="900"></canvas>
+</div>
+<div class="notice compact-notice" id="mappingMessage">Click a pixel to inspect its logical coordinate and physical address.</div>
+</section>
+</div>
+</section>
+<section class="workspace-view" data-workspace-view="output" id="view-output">
+<div class="output-workspace-grid">
+<section class="card output-config-card">
+<div class="workspace-section-head compact-head"><div><span class="kicker">Target</span><h2>Output configuration</h2></div></div>
+<form class="form-grid" id="outputForm">
+<label class="span-2">Target IP<input autocomplete="off" id="targetIp" placeholder="192.168.1.50" required=""/></label>
+<label>Protocol<select id="protocol"><option value="ddp">WLED DDP</option><option value="artnet">Art-Net</option></select></label>
+<label id="portField">DDP port<input id="port" max="65535" min="1" type="number" value="4048"/></label>
+<label>Width<input id="width" max="512" min="1" type="number" value="16"/></label>
+<label>Height<input id="height" max="512" min="1" type="number" value="16"/></label>
+<label class="mapping-option span-2"><span><input id="useMapping" type="checkbox"/> Use saved pixel mapping</span><small id="mappingUseStatus">No saved mapping detected.</small></label>
+<div class="output-mapping-proof span-2" id="outputMappingProof"><span>Mapping inactive</span><strong>Direct row-major output</strong></div>
+<label>Channel order<select id="channelOrder"><option>RGB</option><option>GRB</option><option>BRG</option><option>RBG</option><option>GBR</option><option>BGR</option></select></label>
+<label class="hidden" id="universeField">Start universe<input id="startUniverse" max="32767" min="0" type="number" value="0"/></label>
+<label>Frame rate<input id="fps" max="60" min="1" type="number" value="20"/></label>
+<div class="brightness-location-note"><span>Master brightness</span><strong>Always visible at the top of Output Studio</strong></div>
+</form>
+<div class="safety"><strong>Safety:</strong> Start at low brightness and verify pixel count and power capacity.</div>
+</section>
+<section class="card output-pattern-card visual-engine-card">
+<div class="workspace-section-head compact-head">
+<div><span class="kicker">Visual engine</span><h2>A/B live visual mixer</h2></div>
+<div class="visual-head-badges"><button aria-pressed="false" class="button output-setup-toggle" id="outputSetupToggle" type="button">Hide setup</button><button class="button visual-library-button" id="visualLibraryButton" type="button">Visual library</button><button class="button preset-library-button" id="presetLibraryButton" type="button">Presets</button><button aria-pressed="false" class="button output-density-button" id="outputDensityButton" title="Cycle Output Studio density" type="button">UI AUTO</button><button aria-pressed="false" class="button output-fullscreen-button" id="outputFullscreenButton" title="Browser full screen (F)" type="button">⛶ Browser full screen</button><button class="button output-exit-studio-button" id="outputExitStudioButton" title="Return to the main workspace" type="button">← Workspace</button><button class="button show-mode-button" id="showModeButton" type="button">▶ SHOW MODE</button><button class="button audio-mode-button" id="audioModeButton" type="button">♫ Audio controls · start mic</button><span class="badge idle" id="visualModeCount">135 modes</span><div class="badge idle" id="visualOwnership">Output available</div></div>
+</div>
+<div class="server-version-lock hidden" id="serverVersionLock" role="alert"><strong>Renderer version mismatch</strong><span id="serverVersionLockText">Close the older LEDController command window and relaunch this version.</span></div>
+<div class="output-studio-grid layout-four-studio"><div class="performance-console-layout" data-console-layout="three-preview"><section aria-label="Always-visible master output and transport controls" class="console-master-row console-top-transport"><div aria-label="Master output brightness" class="output-master-strip">
+<label class="master-brightness-control"><span><b>MASTER BRIGHTNESS</b><strong id="brightnessValue">35%</strong></span><input aria-label="Master brightness" id="brightness" max="1" min="0" step="0.01" type="range" value="0.35"/></label>
+<button class="button master-dim-button" data-master-brightness="0.15" type="button">15%</button>
+<button class="button master-dim-button" data-master-brightness="0.35" type="button">35%</button>
+<button class="button master-dim-button" data-master-brightness="0.65" type="button">65%</button>
+<button class="button master-dim-button" data-master-brightness="1" type="button">FULL</button>
+</div><div aria-label="Output transport" class="test-actions visual-actions console-transport-actions">
+<button class="button success console-start-button" disabled="" id="startButton">▶ START VISUAL</button>
+<button class="button danger" id="stopButton">■ STOP / BLACKOUT</button>
+<button class="button" disabled="" id="onceButton">Send frame</button>
+</div></section><section aria-label="Deck A, live output mixer, and Deck B" class="live-console-columns"><section aria-label="Deck A channel" class="console-channel-stack console-channel-a"><section class="console-preview-card deck-a-preview-card" data-deck-card="A"><header><div><span>DECK A</span><strong id="deckALabel">Plasma</strong></div><div class="deck-preview-actions"><span class="deck-live-badge" id="deckAContribution">A LIVE 50%</span><button class="deck-focus-button active" data-deck-focus="A" type="button">Edit A</button></div></header><canvas aria-label="Deck A preview" height="120" id="deckAPreview" width="400"></canvas></section><section class="console-control-card deck-a-control-card" data-deck-card="A"><div class="console-card-title"><span>DECK A</span><strong>Mode, color and motion</strong></div><div class="visual-engine-controls deck-controls deck-a-controls">
+<div class="layer-stack-panel" id="layerStackA"></div>
+<div class="deck-motion-row" aria-label="Deck A motion controls">
+<label>Speed <span id="speedValue">1.00×</span><input id="speed" max="4" min="0.1" step="0.05" type="range" value="1"/></label>
+<label>Scale <span id="scaleValue">1.00×</span><input id="scale" max="6" min="0.25" step="0.05" type="range" value="1"/></label>
+<label>Direction<select id="direction"><option value="1">Forward</option><option value="-1">Reverse</option></select></label>
+</div>
+<label class="visual-mode-field">Selected layer generator
+                <select id="pattern">
+<optgroup label="Utility">
+<option value="solid">Solid color</option>
+<option value="breathe">Color breathe</option>
+<option value="heartbeat">Heartbeat pulse</option>
+<option value="strobe">Strobe</option>
+<option value="blackout">Blackout</option>
+</optgroup>
+<optgroup label="Color">
+<option value="gradient">Two-color gradient</option>
+<option value="color-scroll">Color scroll</option>
+<option value="flowing-gradient">Flowing gradient</option>
+<option value="prism-wave">Prism wave</option>
+<option value="chroma-stripes">Chroma stripes</option>
+<option value="sunset-cycle">Sunset cycle</option>
+<option value="color-wipe">Color wipe</option>
+<option value="color-wipe-dual">Dual color wipe</option>
+<option value="palette-bands">Palette bands</option>
+<option value="rainbow">Rainbow sweep</option>
+<option value="rainbow-diagonal">Diagonal rainbow</option>
+<option value="rainbow-radial">Radial rainbow</option>
+<option value="hue-breathe">Rainbow breathe</option>
+</optgroup>
+<optgroup label="Matrix flow proof">
+<option value="matrix-flow-x">Global horizontal flow</option>
+<option value="matrix-flow-y">Global vertical flow</option>
+<option value="matrix-flow-diagonal">Global diagonal flow</option>
+<option value="matrix-seams">Panel seam grid proof</option>
+</optgroup>
+<optgroup label="Organic">
+<option value="waves">Flowing waves</option>
+<option value="rings">Expanding rings</option>
+<option value="spiral">Rotating spiral</option>
+<option selected="" value="plasma">Plasma</option>
+<option value="aurora">Aurora curtains</option>
+<option value="lava">Lava lamp</option>
+<option value="ocean">Ocean caustics</option>
+<option value="fire">Fire field</option>
+<option value="embers">Rising embers</option>
+<option value="smoke">Drifting smoke</option>
+<option value="liquid">Liquid interference</option>
+<option value="ripple-pool">Ripple pool</option>
+<option value="vortex">Vortex</option>
+<option value="warp-tunnel">Warp tunnel</option>
+<option value="metaballs">Metaballs</option>
+<option value="nebula-clouds">Nebula clouds</option>
+<option value="bio-cells">Bioluminescent cells</option>
+<option value="oil-slick">Oil slick</option>
+<option value="flame-tunnel">Flame tunnel</option>
+<option value="water-ribbons">Water ribbons</option>
+</optgroup>
+<optgroup label="Geometric">
+<option value="bars">Moving bars</option>
+<option value="diagonal-bars">Diagonal bars</option>
+<option value="checker">Checkerboard</option>
+<option value="cells">Cell field</option>
+<option value="diamonds">Diamond field</option>
+<option value="pinwheel">Pinwheel</option>
+<option value="kaleidoscope">Kaleidoscope</option>
+<option value="zoom-boxes">Zooming boxes</option>
+<option value="grid-pulse">Pulsing grid</option>
+<option value="crosshatch">Crosshatch</option>
+<option value="sine-dots">Sine dot lattice</option>
+<option value="moire">Moiré interference</option>
+<option value="pixel-sort">Pixel sort bands</option>
+<option value="mandala">Animated mandala</option>
+<option value="honeycomb-pulse">Honeycomb pulse</option>
+<option value="rotating-tiles">Rotating tiles</option>
+<option value="fractal-cross">Fractal cross</option>
+<option value="tunnel-checker">Checker tunnel</option>
+<option value="cathedral-rose">Cathedral rose</option>
+</optgroup>
+<optgroup label="Layers · new">
+<option value="hex-tunnel">Hexagon tunnel</option>
+<option value="triangle-tunnel">Triangle tunnel</option>
+<option value="polygon-orbit">Polygon orbit</option>
+<option value="geometric-lattice">Geometric lattice</option>
+<option value="isometric-cubes">Isometric cubes</option>
+<option value="concentric-diamonds">Concentric diamonds</option>
+<option value="radial-spokes">Radial spokes</option>
+<option value="perspective-grid">Perspective grid</option>
+<option value="gothic-window">Gothic window</option>
+<option value="flow-field">Flow field</option>
+<option value="reaction-diffusion">Reaction diffusion</option>
+<option value="electric-arcs">Electric arcs</option>
+<option value="aurora-ribbons">Aurora ribbons</option>
+<option value="particle-fountain">Particle fountain</option>
+<option value="comet-vortex">Comet vortex</option>
+</optgroup>
+<optgroup label="Texture">
+<option value="noise">Animated noise</option>
+<option value="static-noise">TV static</option>
+<option value="sparkle">Sparkle field</option>
+<option value="twinkle">Soft twinkle</option>
+<option value="confetti">Confetti</option>
+<option value="starfield">Starfield</option>
+<option value="rain">Digital rain</option>
+<option value="snow">Snowfall</option>
+<option value="lightning">Lightning field</option>
+<option value="glitch">Digital glitch</option>
+<option value="laser-speckle">Laser speckle</option>
+<option value="data-mosaic">Data mosaic</option>
+</optgroup>
+<optgroup label="Motion">
+<option value="scanner">Scanner</option>
+<option value="scanner-dual">Dual scanner</option>
+<option value="comet-x">Horizontal comet</option>
+<option value="comet-y">Vertical comet</option>
+<option value="theater-chase">Theater chase</option>
+<option value="bouncing-dot">Bouncing dot</option>
+<option value="bouncing-bars">Bouncing bars</option>
+<option value="radar">Radar sweep</option>
+<option value="orbiters">Orbiting particles</option>
+</optgroup>
+<optgroup label="Audio reactive">
+<option value="audio-vu-bars">VU bars</option>
+<option value="audio-spectrum">Spectrum analyzer</option>
+<option value="audio-spectrum-mirror">Mirrored spectrum</option>
+<option value="audio-spectrum-radial">Radial spectrum</option>
+<option value="audio-eq-grid">EQ grid</option>
+<option value="audio-oscilloscope">Oscilloscope</option>
+<option value="audio-waveform-fill">Waveform fill</option>
+<option value="audio-level-meter">Level meter</option>
+<option value="audio-bass-pulse">Bass pulse</option>
+<option value="audio-beat-rings">Beat rings</option>
+<option value="audio-kick-flash">Kick flash</option>
+<option value="audio-beat-grid">Beat grid</option>
+<option value="audio-beat-strobe">Beat strobe</option>
+<option value="audio-heart">Audio heartbeat</option>
+<option value="audio-plasma">Audio plasma</option>
+<option value="audio-waves">Audio waves</option>
+<option value="audio-fire">Audio fire</option>
+<option value="audio-ripple">Audio ripple</option>
+<option value="audio-aurora">Audio aurora</option>
+<option value="audio-vortex">Audio vortex</option>
+<option value="audio-comet">Audio comet</option>
+<option value="audio-scanner">Audio scanner</option>
+<option value="audio-starburst">Audio starburst</option>
+<option value="audio-particles">Audio particles</option>
+<option value="audio-rain">Audio rain</option>
+<option value="audio-tunnel">Audio tunnel</option>
+<option value="audio-rainbow">Audio rainbow</option>
+<option value="audio-kaleidoscope">Audio kaleidoscope</option>
+<option value="audio-color-bands">Audio color bands</option>
+<option value="audio-palette-pulse">Audio palette pulse</option>
+<option value="audio-laser-fan">Audio laser fan</option>
+<option value="audio-nebula">Audio nebula</option>
+<option value="audio-shockwave-grid">Audio shockwave grid</option>
+<option value="audio-dna-helix">Audio DNA helix</option>
+<option value="audio-particle-ring">Audio particle ring</option>
+</optgroup>
+<optgroup label="Testing">
+<option value="chase">Single-pixel chase</option>
+<option value="columns">Column scan</option>
+<option value="rows">Row scan</option>
+</optgroup>
+</select>
+</label>
+<div class="visual-color-pair">
+<label>Primary<input id="color" type="color" value="#ff2d8f"/></label>
+<button aria-label="Swap primary and secondary colors" class="color-swap" id="swapColors" title="Swap colors" type="button">⇄</button>
+<label>Secondary<input id="secondaryColor" type="color" value="#2457ff"/></label>
+</div>
+</div></section></section><section aria-label="Live output and mixer channel" class="console-channel-stack console-channel-master"><section class="console-preview-card combined-output-card"><div class="output-preview-toolbar"><div><span class="kicker">Matrix preview</span><strong>Mapped live canvas</strong><small>Output opens in full-page studio · F toggles browser full screen · S hides setup.</small></div><span class="badge idle" id="outputDockStatus">Ready</span></div><div class="visual-preview-wrap">
+<canvas height="360" id="preview" width="640"></canvas>
+<div class="preview-overlay">
+<span id="previewMode">Plasma</span>
+<small id="previewDimensions">16 × 16 logical canvas</small>
+</div>
+</div></section><section class="console-control-card center-mixer-card"><section aria-label="A B visual mixer" class="live-deck-mixer"><header><div><span class="kicker">Live mixer</span><strong>A / B output blend</strong><small id="deckMixSummary">Normal crossfade · both decks visible</small><small class="server-mix-proof" id="serverMixProof">Output stopped · local preview only</small></div><label class="deck-enable-toggle"><input checked="" id="deckMixEnabled" type="checkbox"/> Two decks live</label></header>
+<div class="deck-crossfader-row"><button class="button deck-cut-a" data-deck-crossfade="0" type="button">SOLO A</button><label><span><b>A</b><strong id="deckCrossfaderValue">50%</strong><b>B</b></span><input id="deckCrossfader" max="1" min="0" step="0.01" type="range" value="0.5"/></label><button class="button deck-cut-b" data-deck-crossfade="1" type="button">SOLO B</button></div>
+<div class="deck-mix-presets"><button class="button" data-deck-crossfade="0.25" type="button">75A / 25B</button><button class="button active" id="deckCenter" type="button">50 / 50</button><button class="button" data-deck-crossfade="0.75" type="button">25A / 75B</button></div>
+<div class="deck-mix-tools"><label>Mix mode<select id="deckMixMode"><option selected="" value="crossfade">Normal crossfade</option><option value="add">Add light</option><option value="screen">Screen</option><option value="multiply">Multiply / darken</option><option value="difference">Difference</option><option value="luma">Luma key</option><option value="wipe-x">Horizontal wipe</option><option value="wipe-y">Vertical wipe</option></select></label><button class="button" id="deckSwap" type="button">Swap A/B</button></div>
+<div aria-label="Deck contribution" class="deck-contribution-track"><span id="deckAContributionBar" style="width:50%"></span><span id="deckBContributionBar" style="width:50%"></span></div>
+</section></section></section><section aria-label="Deck B channel" class="console-channel-stack console-channel-b"><section class="console-preview-card deck-b-preview-card" data-deck-card="B"><header><div><span>DECK B</span><strong id="deckBLabel">Flowing gradient</strong></div><div class="deck-preview-actions"><span class="deck-live-badge deck-b-live" id="deckBContribution">B LIVE 50%</span><button class="deck-focus-button" data-deck-focus="B" type="button">Edit B</button></div></header><canvas aria-label="Deck B preview" height="120" id="deckBPreview" width="400"></canvas></section><section class="console-control-card deck-b-control-card" data-deck-card="B"><div class="console-card-title"><span>DECK B</span><strong>Mode, color and motion</strong></div><div class="visual-engine-controls deck-controls deck-b-controls">
+<div class="layer-stack-panel" id="layerStackB"></div>
+<div class="deck-motion-row" aria-label="Deck B motion controls">
+<label>Speed <span id="speedBValue">0.75×</span><input id="speedB" max="4" min="0.1" step="0.05" type="range" value="0.75"/></label>
+<label>Scale <span id="scaleBValue">1.00×</span><input id="scaleB" max="6" min="0.25" step="0.05" type="range" value="1"/></label>
+<label>Direction<select id="directionB"><option value="1">Forward</option><option value="-1">Reverse</option></select></label>
+</div>
+<label class="visual-mode-field">Selected layer generator<select id="patternB"></select></label>
+<div class="visual-color-pair"><label>Primary<input id="colorB" type="color" value="#00e5ff"/></label><button aria-label="Swap Deck B colors" class="color-swap" id="swapColorsB" title="Swap colors" type="button">⇄</button><label>Secondary<input id="secondaryColorB" type="color" value="#7b2cff"/></label></div>
+</div></section></section></section><section aria-label="Live audio analyzer" class="console-audio-row"><div class="audio-monitor span-2">
+<div class="audio-spectrum-head"><div><span class="kicker">Live analyzer</span><strong>Frequency spectrum and waveform</strong></div><div class="spectrum-band-key"><span>SUB</span><span>BASS</span><span>MID</span><span>TREBLE</span></div></div>
+<div class="audio-diagnostic-canvases"><canvas aria-label="Live audio spectrum" height="240" id="audioScope" width="960"></canvas><canvas aria-label="Recent beat history" height="58" id="audioBeatHistory" width="960"></canvas></div>
+<div class="audio-meter-grid">
+<div><span>Level</span><i><b id="audioLevelBar"></b></i><strong id="audioLevelText">0%</strong></div>
+<div><span>Bass</span><i><b id="audioBassBar"></b></i><strong id="audioBassText">0%</strong></div>
+<div><span>Mid</span><i><b id="audioMidBar"></b></i><strong id="audioMidText">0%</strong></div>
+<div><span>Treble / cymbals</span><i><b id="audioTrebleBar"></b></i><strong id="audioTrebleText">0%</strong></div>
+<div><span>Beat</span><i><b id="audioBeatBar"></b></i><strong id="audioBeatText">0%</strong></div>
+<div><span>Kick</span><i><b id="audioKickBar"></b></i><strong id="audioKickText">0%</strong></div>
+<div><span>Snare</span><i><b id="audioSnareBar"></b></i><strong id="audioSnareText">0%</strong></div>
+<div><span>Hi-hat</span><i><b id="audioHihatBar"></b></i><strong id="audioHihatText">0%</strong></div>
+</div>
+</div></section></div><aside aria-label="Visual and audio controls" class="output-control-dock"><div aria-label="Output control panels" class="output-control-tabs" role="tablist"><button aria-selected="true" class="output-control-tab active" data-output-control-tab="visual" role="tab" title="Return to the live three-preview console" type="button">Close panel</button><button aria-selected="false" class="output-control-tab" data-output-control-tab="presets" role="tab" type="button">Presets</button><button aria-selected="false" class="output-control-tab" data-output-control-tab="show" role="tab" type="button">Show Director</button><button aria-selected="false" class="output-control-tab" data-output-control-tab="audio" role="tab" type="button">Audio settings</button></div><section class="output-control-panel active" data-output-control-panel="visual" role="tabpanel"><div class="drawer-console-note"><span class="kicker">Visual library</span><strong>Matrix settings and quick looks</strong><small>The live A/B deck controls remain on the main studio. Use this drawer only for global matrix clarity and preset shortcuts.</small></div><section aria-label="Matrix and quick look controls" class="console-utility-row"><div class="matrix-global-controls">
+<label>Mode library<select id="modeLibrary"><option selected="" value="matrix">Matrix optimized</option><option value="all">All modes</option></select></label>
+<label>Matrix clarity<select id="matrixClarity"><option selected="" value="auto">Auto for resolution</option><option value="optimized">Always optimized</option><option value="full">Full detail</option></select></label>
+<label>Element size <span id="matrixElementSizeValue">1.55×</span><input id="matrixElementSize" max="3" min="0.75" step="0.05" type="range" value="1.55"/></label>
+<label class="matrix-preview-toggle"><span><input checked="" id="showPreviewPanels" type="checkbox"/> Show panel outlines</span><small>Preview the exact saved panel layout.</small></label>
+<div class="matrix-clarity-note" id="matrixClarityNote">Matrix-optimized modes are selected for the saved canvas.</div>
+</div><div aria-label="Visual presets for the selected deck" class="visual-preset-row">
+<button class="visual-preset active" data-visual-preset="plasma" type="button">Plasma</button>
+<button class="visual-preset" data-visual-preset="waves" type="button">Waves</button>
+<button class="visual-preset" data-visual-preset="rings" type="button">Rings</button>
+<button class="visual-preset" data-visual-preset="spiral" type="button">Spiral</button>
+<button class="visual-preset" data-visual-preset="cells" type="button">Cells</button>
+<button class="visual-preset" data-visual-preset="sparkle" type="button">Sparkle</button>
+<button class="visual-preset" data-visual-preset="aurora" type="button">Aurora</button>
+<button class="visual-preset" data-visual-preset="fire" type="button">Fire</button>
+<button class="visual-preset" data-visual-preset="vortex" type="button">Vortex</button>
+<button class="visual-preset" data-visual-preset="scanner" type="button">Scanner</button>
+<button class="visual-preset" data-visual-preset="starfield" type="button">Stars</button>
+<button class="visual-preset" data-visual-preset="kaleidoscope" type="button">Kaleido</button>
+<button class="visual-preset audio-preset" data-visual-preset="audio-spectrum" type="button">Spectrum</button>
+<button class="visual-preset audio-preset" data-visual-preset="audio-bass-pulse" type="button">Bass pulse</button>
+<button class="visual-preset audio-preset" data-visual-preset="audio-kaleidoscope" type="button">Audio kaleido</button>
+</div></section></section><section class="output-control-panel preset-manager-panel" data-output-control-panel="presets" hidden="" role="tabpanel">
+<div class="control-panel-title"><span class="kicker">Preset memory</span><strong>Save and recall complete performance presets</strong></div>
+<div class="preset-manager-card">
+<label>Preset name<input autocomplete="off" id="presetName" maxlength="80" placeholder="Example: Bass tunnel · tight mic" type="text"/></label>
+<label>Saved in this browser<select id="presetSelect"><option value="">No presets in memory</option></select></label>
+<div class="preset-primary-actions"><button class="button success" id="presetSave" type="button">Save to memory</button><button class="button" disabled="" id="presetUpdate" type="button">Update memory</button></div>
+<div class="preset-secondary-actions"><button class="button" disabled="" id="presetLoad" type="button">Load from memory</button><button class="button danger" disabled="" id="presetDelete" type="button">Delete</button></div>
+<div class="preset-memory-section"><div class="preset-memory-heading"><strong>Quick recall</strong><span id="presetMemoryCount">0 saved</span></div><div aria-live="polite" class="preset-memory-list" id="presetMemoryList"><div class="preset-memory-empty">Save a preset to create a one-click recall button.</div></div></div>
+<div class="preset-transfer-actions"><button class="button" id="presetExport" type="button">Export backup</button><button class="button" id="presetImportButton" type="button">Import backup</button><input accept="application/json,.json" class="hidden" id="presetImportFile" type="file"/></div>
+<div class="preset-status" id="presetStatus"><strong>Presets and mappings are separate</strong><span>Presets store decks, mixer, output target, matrix display options, Show Director, every audio-response setting, source preference, and BPM controls. A running microphone or system-audio stream stays live during preset recall. When capture is off, an audio preset starts its saved source directly from the Load click. Your active pixel mapping is saved only from the Mapping workspace and is never replaced by loading a preset.</span></div>
+</div>
+</section><section class="output-control-panel show-director-panel" data-output-control-panel="show" hidden="" role="tabpanel">
+<div class="control-panel-title"><span class="kicker">Live VJ Show Director</span><strong>Live busking console · manual first</strong></div>
+<div class="show-director-hero">
+<div><span class="show-live-dot" id="showLiveDot"></span><strong id="showDirectorState">Ready to perform</strong><small id="showDirectorReason">Manual look pads with beat-assisted performance moves</small></div>
+<div class="show-director-actions"><button class="button success" id="startShowButton" type="button">Start Show</button><button class="button" id="nextShowLook" type="button">ASSIST NEXT</button><button class="button danger" id="stopShowButton" type="button">Stop show</button></div>
+</div>
+<div aria-label="Live look pads" class="show-look-bank">
+<button class="show-look-pad active" data-show-look="flow" type="button"><strong>FLOW</strong><small>Slow wide matrix motion</small></button>
+<button class="show-look-pad" data-show-look="scanner" type="button"><strong>SCANNER</strong><small>Controlled dual beam</small></button>
+<button class="show-look-pad" data-show-look="bars" type="button"><strong>BARS</strong><small>Wide readable bars</small></button>
+<button class="show-look-pad" data-show-look="wipe" type="button"><strong>WIPE</strong><small>Clean color transition</small></button>
+<button class="show-look-pad" data-show-look="spectrum" type="button"><strong>SPECTRUM</strong><small>Mirrored live bands</small></button>
+<button class="show-look-pad" data-show-look="vu" type="button"><strong>VU BARS</strong><small>Audio level columns</small></button>
+<button class="show-look-pad" data-show-look="pulse" type="button"><strong>PULSE</strong><small>Bass-driven fill</small></button>
+<button class="show-look-pad" data-show-look="gradient" type="button"><strong>GRADIENT</strong><small>Slow color atmosphere</small></button>
+</div>
+<div class="show-rate-strip">
+<button class="button" data-show-rate="0.25" type="button">¼ RATE</button>
+<button class="button" data-show-rate="0.5" type="button">½ RATE</button>
+<button class="button active" data-show-rate="1" type="button">SHOW RATE</button>
+<button class="button" data-show-rate="1.5" type="button">1½ RATE</button>
+<button class="button" id="showReverse" type="button">REVERSE</button>
+<button class="button" id="showColorHit" type="button">COLOR HIT</button>
+</div>
+<div aria-label="Live performance pads" class="show-performance-pads">
+<button class="show-pad punch" id="showPunch" type="button"><strong>PUNCH</strong><small>Fader hit</small></button>
+<button class="show-pad white" id="showWhiteHit" type="button"><strong>WHITE</strong><small>Impact hit</small></button>
+<button class="show-pad blackout" id="showBlackoutTap" type="button"><strong>BLACKOUT</strong><small>Momentary cut</small></button>
+<button class="show-pad freeze" id="showFreeze" type="button"><strong>FREEZE</strong><small>Hold frame</small></button>
+<button class="show-pad strobe" id="showStrobeTap" type="button"><strong>STROBE</strong><small>Limited burst</small></button>
+</div>
+<div class="show-control-grid">
+<label>Control mode<select id="showControlMode"><option selected="" value="busking">Busking · manual looks</option><option value="assist">Assisted · occasional changes</option><option value="auto">Autopilot · full director</option></select></label>
+<label>Show style<select id="showStyle"><option value="festival">Festival mainstage</option><option value="club">Nightclub / EDM</option><option value="cinematic">Cinematic journey</option><option value="ambient">Ambient / lounge</option><option value="corporate">Polished corporate</option></select></label>
+<label>Auto phrase<select id="showSceneBeats"><option selected="" value="16">16 beats · responsive</option><option value="32">32 beats · balanced</option><option value="64">64 beats · long</option></select></label>
+<label>Operator feel <span id="showPerformanceValue">80%</span><input id="showPerformance" max="1" min="0" step="0.01" type="range" value="0.8"/></label>
+<label>Gesture density <span id="showGestureRateValue">30%</span><input id="showGestureRate" max="1" min="0" step="0.01" type="range" value="0.30"/></label>
+<label>Mix behavior<select id="showMixStyle"><option value="hybrid">Live hybrid · faders + cuts</option><option value="smooth">Smooth fader rides</option><option value="cuts">Punchy cuts + wipes</option></select></label>
+<label>Take time <span id="showTransitionValue">0.35 s</span><input id="showTransition" max="3" min="0" step="0.05" type="range" value="0.35"/></label>
+<label>Motion pace <span id="showRateValue">1.00×</span><input id="showRate" max="2" min="0.25" step="0.05" type="range" value="1"/></label>
+<label>Intensity <span id="showIntensityValue">72%</span><input id="showIntensity" max="1" min="0.15" step="0.01" type="range" value="0.72"/></label>
+<label>Variation <span id="showVariationValue">55%</span><input id="showVariation" max="1" min="0" step="0.01" type="range" value="0.55"/></label>
+<label>Fallback BPM<input id="showBpm" max="220" min="45" type="number" value="120"/></label>
+<label class="audio-enable"><span><input checked="" id="showStrobeSafe" type="checkbox"/> Limit flash bursts</span><small>Keeps automatic and manual strobe gestures at a reduced rate and duration.</small></label>
+<label class="audio-enable"><span><input checked="" id="showAdaptive" type="checkbox"/> Adaptive VJ Director</span><small>Reads energy and musical structure while preserving coherent looks and operator-style timing.</small></label>
+<label class="audio-enable"><span><input checked="" id="showAudioSync" type="checkbox"/> Sync to live audio</span><small>Uses kick, snare, hi-hat, energy and BPM without accelerating the base motion.</small></label>
+</div>
+<div class="show-deck-status">
+<div><span>LIVE LOOK</span><strong id="showDeckA">—</strong></div>
+<div><span>NEXT / CUED</span><strong id="showDeckB">—</strong></div>
+<div class="show-crossfader"><span>Crossfader</span><i><b id="showCrossfaderBar"></b><em id="showCrossfaderKnob"></em></i><strong id="showCrossfaderValue">0%</strong></div>
+</div>
+<strong hidden="" id="showCurrentLook">—</strong><strong hidden="" id="showSection">—</strong>
+<div class="show-status-grid">
+<div><span>Operator move</span><strong id="showOperatorMove">—</strong></div><div><span>Mix state</span><strong id="showMixState">—</strong></div><div><span>Energy</span><strong id="showEnergy">0%</strong></div><div><span>Next phrase</span><strong id="showNextChange">—</strong></div>
+</div>
+<div class="show-energy-meter"><i><b id="showEnergyBar"></b></i></div>
+<div class="notice show-director-note">Show Mode uses eight low-resolution-safe looks. The Node service owns a focus-independent motion clock; audio adds controlled accents without changing the LED animation rate.</div>
+</section><section class="output-control-panel" data-output-control-panel="audio" hidden="" role="tabpanel"><section aria-label="Audio reactive controls" class="audio-reactive-panel audio-controls-visible">
+<div class="audio-panel-header">
+<div><span class="kicker">Audio controls</span><strong>Live sound response</strong><small>Always visible · microphone or shared system/tab audio</small></div>
+<span class="badge idle" id="audioStatus">Audio off</span>
+</div>
+<div class="audio-control-grid">
+<div class="audio-source-controls span-2">
+<button class="button" id="startMic" type="button">Start microphone</button>
+<button class="button" id="startSystemAudio" type="button">Capture system/tab audio</button>
+<button class="button danger" disabled="" id="stopAudio" type="button">Stop audio</button>
+<select aria-label="Microphone input" id="audioDevice"><option value="">Default microphone</option></select>
+</div>
+<label class="audio-enable span-2"><span><input checked="" id="audioAutoStartOnLaunch" type="checkbox"/> Start microphone automatically</span><small>After permission is granted once, LEDController restores the same microphone whenever this page opens or refreshes. Browser privacy rules may require one click after a permission reset.</small></label>
+<div class="audio-calibration-tools span-2">
+<button class="button primary" id="audioCalibrate" type="button">Calibrate input · 8 sec</button>
+<button class="button" id="audioSaveProfile" type="button">Save device profile</button>
+<button class="button" id="audioLoadProfile" type="button">Load device profile</button>
+<div class="audio-calibration-progress"><span id="audioCalibrationText">Not calibrated</span><i><b id="audioCalibrationBar"></b></i></div>
+</div>
+<label class="audio-enable"><span><input checked="" id="audioEnabled" type="checkbox"/> React visuals to audio</span><small>Starting audio preserves the current visual; use these buttons to change source.</small></label>
+<label>Response profile<select id="audioProfile"><option selected="" value="tight">Tight live</option><option value="balanced">Balanced</option><option value="punchy">Punchy</option><option value="extreme">Extreme</option><option value="smooth">Smooth</option></select></label>
+<label>Response band<select id="audioResponse"><option value="overall">Overall level</option><option value="sub">Sub bass</option><option value="bass">Bass</option><option value="mid">Midrange</option><option value="treble">Treble</option><option value="beat">Detected beat</option><option value="kick">Kick transient</option><option value="snare">Snare transient</option><option value="hihat">Hi-hat transient</option></select></label>
+<label>Input gain <span id="audioSensitivityValue">3.50×</span><input id="audioSensitivity" max="10" min="0.1" step="0.05" type="range" value="3.5"/></label>
+<label>Master reaction <span id="audioMasterValue">2.00×</span><input id="audioMaster" max="5" min="0" step="0.05" type="range" value="2"/></label>
+<label>Bass boost <span id="audioBassBoostValue">1.75×</span><input id="audioBassBoost" max="4" min="0.25" step="0.05" type="range" value="1.75"/></label>
+<label>Beat boost <span id="audioBeatBoostValue">2.00×</span><input id="audioBeatBoost" max="5" min="0.25" step="0.05" type="range" value="2"/></label>
+<label>Smoothing <span id="audioSmoothingValue">45%</span><input id="audioSmoothing" max="0.95" min="0" step="0.01" type="range" value="0.45"/></label>
+<label>Noise gate <span id="audioGateValue">0.2%</span><input id="audioGate" max="0.2" min="0" step="0.001" type="range" value="0.002"/></label>
+<label>Beat threshold <span id="beatSensitivityValue">1.05×</span><input id="beatSensitivity" max="3" min="0.5" step="0.05" type="range" value="1.05"/></label><label class="audio-enable"><span><input checked="" id="audioAutoGain" type="checkbox"/> Automatic gain</span><small>Learns the room-noise floor and preserves headroom so quiet input is not stretched to 100%.</small></label>
+<label>Dynamic range <span id="audioDynamicsValue">72%</span><input id="audioDynamics" max="1" min="0" step="0.01" type="range" value="0.72"/></label>
+<label>Attack <span id="audioAttackValue">22 ms</span><input id="audioAttack" max="300" min="4" step="1" type="range" value="22"/></label>
+<label>Release <span id="audioReleaseValue">180 ms</span><input id="audioRelease" max="1200" min="40" step="5" type="range" value="180"/></label>
+<label>Transient sensitivity <span id="audioTransientValue">1.15×</span><input id="audioTransient" max="4" min="0.25" step="0.05" type="range" value="1.15"/></label>
+<label>Mode reaction <span id="audioModeStrengthValue">1.00×</span><input id="audioModeStrength" max="3" min="0" step="0.05" type="range" value="1"/></label>
+<label>Sub gain <span id="audioSubGainValue">1.00×</span><input id="audioSubGain" max="4" min="0.25" step="0.05" type="range" value="1"/></label>
+<label>Bass gain <span id="audioBassGainValue">1.00×</span><input id="audioBassGain" max="4" min="0.25" step="0.05" type="range" value="1"/></label>
+<label>Low-mid gain <span id="audioLowMidGainValue">1.00×</span><input id="audioLowMidGain" max="4" min="0.25" step="0.05" type="range" value="1"/></label>
+<label>Mid gain <span id="audioMidGainValue">1.00×</span><input id="audioMidGain" max="4" min="0.25" step="0.05" type="range" value="1"/></label>
+<label>High-mid gain <span id="audioHighMidGainValue">1.00×</span><input id="audioHighMidGain" max="4" min="0.25" step="0.05" type="range" value="1"/></label>
+<label>Treble gain <span id="audioTrebleGainValue">1.00×</span><input id="audioTrebleGain" max="4" min="0.25" step="0.05" type="range" value="1"/></label>
+<label class="audio-enable"><span><input id="audioTempoSync" type="checkbox"/> Tempo pulse</span><small>Add a stable BPM pulse between detected beats.</small></label>
+<label>Beat division<select id="audioBeatDivision"><option value="0.5">Half time</option><option selected="" value="1">1× beat</option><option value="2">Double time</option><option value="4">Quarter-beat</option></select></label>
+<div class="tempo-tools span-2"><button class="button" id="audioTapTempo" type="button">Tap tempo</button><button class="button" id="audioResetTempo" type="button">Reset BPM</button><div><span>Auto BPM</span><strong id="audioBpmText">—</strong></div><div><span>Estimated latency</span><strong id="audioLatencyText">—</strong></div><div><span>Device profile</span><strong id="audioDeviceProfileText">Unsaved</strong></div></div>
+<label>Motion reaction <span id="audioMotionValue">2.00×</span><input id="audioMotion" max="6" min="0" step="0.05" type="range" value="2"/></label>
+<label>Brightness reaction <span id="audioBrightnessValue">1.25×</span><input id="audioBrightness" max="4" min="0" step="0.05" type="range" value="1.25"/></label>
+<label>Scale reaction <span id="audioScaleValue">0.80×</span><input id="audioScale" max="4" min="0" step="0.05" type="range" value="0.8"/></label>
+<label>Color reaction <span id="audioColorValue">0.90×</span><input id="audioColor" max="4" min="0" step="0.05" type="range" value="0.9"/></label>
+</div>
+</section></section></aside></div></section>
+</div>
+</section>
+<section class="workspace-view" data-workspace-view="monitor" id="view-monitor">
+<section class="card monitor-card">
+<div class="workspace-section-head">
+<div><span class="kicker">Telemetry</span><h2>Live transmission monitor</h2></div>
+<div class="badge idle" id="runningBadge">Idle</div>
+</div>
+<div class="metrics">
+<div><span>Frames sent</span><strong id="framesSent">0</strong></div>
+<div><span>UDP packets</span><strong id="packetsSent">0</strong></div>
+<div><span>Bytes sent</span><strong id="bytesSent">0</strong></div>
+<div><span>Errors</span><strong id="errors">0</strong></div>
+<div><span>Actual FPS</span><strong id="actualFps">—</strong></div>
+<div><span>Max jitter</span><strong id="maxJitter">—</strong></div>
+<div><span>Dropped frames</span><strong id="droppedFrames">0</strong></div>
+<div><span>Last frame</span><strong id="lastFrame">—</strong></div>
+</div>
+<div class="error-box hidden" id="errorBox"></div>
+<div class="log" id="log"><div><time>—</time><span>Waiting for activity.</span></div></div>
+</section>
+</section>
+</main>
+</div>
+<div aria-hidden="true" class="layer-inspector-overlay hidden" id="layerInspectorOverlay" role="dialog" aria-modal="true" aria-labelledby="layerInspectorTitle">
+  <section class="layer-inspector-dialog">
+    <header class="layer-inspector-header">
+      <div><span>COMPOSITION LAYER</span><strong id="layerInspectorTitle">Layer controls</strong><small id="layerInspectorSubtitle">Deck A</small></div>
+      <button aria-label="Close layer controls" class="layer-inspector-close" data-layer-inspector-close type="button">×</button>
+    </header>
+    <div class="layer-inspector-body" id="layerInspectorBody"></div>
+    <footer class="layer-inspector-footer"><span>Generator, color, speed, scale, and direction remain in the selected deck controls.</span><button class="button" data-layer-inspector-close type="button">Done</button></footer>
+  </section>
+</div>
+<script src="/app.js" type="module"></script>
+<script defer="" src="/mapping-preview.js"></script>
+<script src="/workspace.js" type="module"></script>
+</body>
+</html>
