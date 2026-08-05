@@ -100,4 +100,16 @@ The current release supports **WLED/DDP** and **Art-Net** output. E1.31/sACN, OS
 
 ## License
 
-No open-source license has been selected for this repository. Copyright © 2026 James Bahr. All rights reserved.
+## License
+
+This project is available under the GNU Affero General Public License
+Version 3 (`AGPL-3.0-only`).
+
+You may use, modify, fork, and redistribute the community edition under
+the terms of the AGPL.
+
+Commercial licenses are available for organizations that want to use,
+modify, embed, redistribute, or operate the software without the
+requirements of the AGPL.
+
+Contact: info@audioreactive.com Copyright © 2026 James Bahr. All rights reserved.
